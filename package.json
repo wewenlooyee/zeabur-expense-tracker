@@ -1,0 +1,13 @@
+{
+  "name": "zeabur-expense-tracker",
+  "version": "1.0.0",
+  "description": "多功能記帳系統 (部署於 Zeabur)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6"
+  }
+}
