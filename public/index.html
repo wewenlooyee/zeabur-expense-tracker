@@ -63,6 +63,24 @@
             --primary-color: #fbc02d;
         }
 
+        /* 新增：紫色主題 (Purple) */
+        [data-theme="purple"] {
+            --bg-color: #f3e5f5; /* 淺紫背景 */
+            --card-bg: #ffffff;
+            --text-color: #4a148c; /* 深紫文字 */
+            --border-color: #e1bee7;
+            --primary-color: #8e24aa;
+        }
+
+        /* 新增：粉色主題 (Pink) */
+        [data-theme="pink"] {
+            --bg-color: #fce4ec; /* 淺粉背景 */
+            --card-bg: #ffffff;
+            --text-color: #880e4f; /* 深粉文字 */
+            --border-color: #f8bbd0;
+            --primary-color: #d81b60;
+        }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -78,7 +96,6 @@
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
         }
 
-        /* 主題選擇器樣式 */
         .theme-selector {
             padding: 8px;
             border-radius: 5px;
@@ -124,7 +141,6 @@
     <div class="container">
         <header>
             <h1>💰 Expense Tracker</h1>
-            <!-- 多色主題選擇器 -->
             <select id="theme-selector" class="theme-selector">
                 <option value="light">⬜ 淺色 (預設)</option>
                 <option value="dark">⬛ 深色 (黑)</option>
@@ -132,6 +148,8 @@
                 <option value="blue">🟦 藍色主題</option>
                 <option value="green">🟩 綠色主題</option>
                 <option value="yellow">🟨 黃色主題</option>
+                <option value="purple">🟪 紫色主題</option>
+                <option value="pink">🌸 粉色主題</option>
             </select>
         </header>
 
@@ -153,15 +171,7 @@
                     <option value="expense">支出</option>
                     <option value="income">收入</option>
                 </select>
-                <select id="category">
-                    <option value="餐飲">餐飲</option>
-                    <option value="交通">交通</option>
-                    <option value="居住">居住</option>
-                    <option value="娛樂">娛樂</option> <!-- 新增娛樂 -->
-                    <option value="薪水">薪水</option>
-                    <option value="中獎">中獎</option> <!-- 新增中獎 -->
-                    <option value="其他">其他</option>
-                </select>
+                <select id="category"></select>
                 <input type="number" id="amount" placeholder="金額" required min="1">
                 <input type="text" id="note" placeholder="備註 (選填)">
                 <button type="submit" class="btn-primary">新增紀錄</button>
@@ -183,25 +193,51 @@
         let chartInstance = null;
         const apiBase = '/api/expenses'; 
 
+        // === 更新對應表：收入加入「其他」 ===
+        const categoriesMap = {
+            expense: ['餐飲', '交通', '居住', '娛樂', '其他'],
+            income: ['薪水', '中獎', '其他']
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
+            initCategoryDropdown(); 
             document.getElementById('date').valueAsDate = new Date();
             fetchData();
         });
 
-        // === 全新多色主題管理邏輯 ===
         function initTheme() {
             const savedTheme = localStorage.getItem('app-theme') || 'light';
             document.body.setAttribute('data-theme', savedTheme);
             const selector = document.getElementById('theme-selector');
             selector.value = savedTheme;
 
-            // 監聽下拉選單改變事件
             selector.addEventListener('change', (e) => {
                 const selectedTheme = e.target.value;
                 document.body.setAttribute('data-theme', selectedTheme);
-                localStorage.setItem('app-theme', selectedTheme); // 記憶使用者選擇
+                localStorage.setItem('app-theme', selectedTheme);
             });
+        }
+
+        function initCategoryDropdown() {
+            const typeSelect = document.getElementById('type');
+            
+            function updateCategories() {
+                const selectedType = typeSelect.value; 
+                const categorySelect = document.getElementById('category');
+                
+                categorySelect.innerHTML = '';
+                
+                categoriesMap[selectedType].forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    categorySelect.appendChild(option);
+                });
+            }
+
+            typeSelect.addEventListener('change', updateCategories);
+            updateCategories();
         }
 
         async function fetchData() {
@@ -233,6 +269,7 @@
                 if (response.ok) {
                     document.getElementById('record-form').reset();
                     document.getElementById('date').valueAsDate = new Date();
+                    document.getElementById('type').dispatchEvent(new Event('change'));
                     fetchData(); 
                 }
             } catch (error) {
